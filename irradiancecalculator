@@ -1,0 +1,23 @@
+import math
+
+# With the Earth's radius set to 1, only looking at a single hemisphere.
+def get_irradiance_at_latitude(lat):
+    #lat_radians = math.radians(lat)
+    lat_radians = math.radians(lat)
+    angle_covered_by_chord = 180 - (2 * lat_radians)
+    chord_length = 2 * math.sin(angle_covered_by_chord / 2)
+    return math.cos(lat_radians) * chord_length
+
+def get_irradiance_between_latitudes(lat1, lat2):
+    # Multiply by four because we can't import numpy onto this machine
+    total_irradiance = 0
+    for i in range(int(4 * lat1), int(4 * lat2), 1):
+        total_irradiance += get_irradiance_at_latitude(i/4)
+    
+    return total_irradiance
+
+tropical_irradiance = get_irradiance_between_latitudes(0, 23.25)
+
+all_irradiance = get_irradiance_between_latitudes(0, 90)
+
+print(str(round(tropical_irradiance/all_irradiance, 4)*100) + "%")
