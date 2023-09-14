@@ -1,23 +1,37 @@
 import math
 
 # With the Earth's radius set to 1, only looking at a single hemisphere.
-def get_irradiance_at_latitude(lat):
+def get_irradiance_at_latitude(lat, declination):
     #lat_radians = math.radians(lat)
     lat_radians = math.radians(lat)
     angle_covered_by_chord = 180 - (2 * lat_radians)
     chord_length = 2 * math.sin(angle_covered_by_chord / 2)
-    return math.cos(lat_radians) * chord_length
 
-def get_irradiance_between_latitudes(lat1, lat2):
+    return math.cos(math.radians(lat - declination)) * chord_length
+
+def get_average_irradiance(lat, declination):
+    angle_change_per_day = declination/365
+
+    total_yearly_irradiance = 0
+    starting_angle = 0 - declination
+
+    for i in range(365):
+        total_yearly_irradiance += (get_irradiance_at_latitude(lat, starting_angle))
+        starting_angle += angle_change_per_day
+    
+    return total_yearly_irradiance/365
+
+
+def get_irradiance_between_latitudes(lat1, lat2, declination):
     # Multiply by four because we can't import numpy onto this machine
     total_irradiance = 0
     for i in range(int(4 * lat1), int(4 * lat2), 1):
-        total_irradiance += get_irradiance_at_latitude(i/4)
+        total_irradiance += get_average_irradiance(i/4, declination)
     
     return total_irradiance
 
-tropical_irradiance = get_irradiance_between_latitudes(0, 23.25)
+tropical_irradiance = get_irradiance_between_latitudes(0, 23.25, 23.25)
 
-all_irradiance = get_irradiance_between_latitudes(0, 90)
+total_irradiance = get_irradiance_between_latitudes(0, 90, 23.25)
 
-print(str(round(tropical_irradiance/all_irradiance, 4)*100) + "%")
+print(str(round(tropical_irradiance/total_irradiance, 2) * 100) + "%")
