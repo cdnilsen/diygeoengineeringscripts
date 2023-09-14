@@ -30,8 +30,12 @@ def get_irradiance_between_latitudes(lat1, lat2, declination):
     
     return total_irradiance
 
-tropical_irradiance = get_irradiance_between_latitudes(0, 23.25, 23.25)
+def get_proportion_irradiance_between_latitudes(lat1, lat2, declination):
+    total_irradiance = get_irradiance_between_latitudes(0, 90, declination)
 
-total_irradiance = get_irradiance_between_latitudes(0, 90, 23.25)
+    between_latitudes = get_irradiance_between_latitudes(lat1, lat2, declination)
 
-print(str(round(tropical_irradiance/total_irradiance, 2) * 100) + "%")
+    return(round(between_latitudes/total_irradiance, 2))
+
+print(str(get_proportion_irradiance_between_latitudes(0, 23.25, 23.25) * 100) + "%")
+
