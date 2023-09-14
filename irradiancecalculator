@@ -1,41 +1,52 @@
 import math
 
-# With the Earth's radius set to 1, only looking at a single hemisphere.
-def get_irradiance_at_latitude(lat, declination):
-    #lat_radians = math.radians(lat)
-    lat_radians = math.radians(lat)
-    angle_covered_by_chord = 180 - (2 * lat_radians)
-    chord_length = 2 * math.sin(angle_covered_by_chord / 2)
+def get_irradiance(latitude, declination, hour):
+    latRad = math.radians(latitude)
+    declRad = math.radians(declination)
+    hourAngle = (hour * math.pi) / 12
 
-    return math.cos(math.radians(lat - declination)) * chord_length
-
-def get_average_irradiance(lat, declination):
-    angle_change_per_day = declination/365
-
-    total_yearly_irradiance = 0
-    starting_angle = 0 - declination
-
-    for i in range(365):
-        total_yearly_irradiance += (get_irradiance_at_latitude(lat, starting_angle))
-        starting_angle += angle_change_per_day
+    elevation = math.sin(latRad)*math.sin(declRad) + math.cos(latRad)*math.cos(declRad)*math.cos(hourAngle)
     
-    return total_yearly_irradiance/365
+    # The sine of the elevation angle of the sun is the same as the cosine of the angle between the elevation and vertical.
+    if elevation <= 0:
+        return 0
+    else:
+        return elevation
 
-
-def get_irradiance_between_latitudes(lat1, lat2, declination):
-    # Multiply by four because we can't import numpy onto this machine
+def average_daily_irradiance(latitude, declination):
     total_irradiance = 0
-    for i in range(int(4 * lat1), int(4 * lat2), 1):
-        total_irradiance += get_average_irradiance(i/4, declination)
+    for hour in range(23):
+        total_irradiance += get_irradiance(latitude, declination, hour)
     
-    return total_irradiance
+    return (total_irradiance/24)
 
-def get_proportion_irradiance_between_latitudes(lat1, lat2, declination):
-    total_irradiance = get_irradiance_between_latitudes(0, 90, declination)
+def average_yearly_irradiance(latitude, axis_tilt):
+    daily_change = axis_tilt/365
+    
+    all_irradiance = 0
+    starting_declination = 0 - axis_tilt
 
-    between_latitudes = get_irradiance_between_latitudes(lat1, lat2, declination)
+    for day in range(364):
+        all_irradiance += average_daily_irradiance(latitude, starting_declination)
+        starting_declination += daily_change
 
-    return(round(between_latitudes/total_irradiance, 2))
+    return (all_irradiance / 365)
 
-print(str(get_proportion_irradiance_between_latitudes(0, 23.25, 23.25) * 100) + "%")
+seeCumulativeIrradiance = True
+if seeCumulativeIrradiance == True:
+    all_total_irradiance = 0
+    for i in range(91):
+        all_total_irradiance += average_yearly_irradiance(i, 23.45)
 
+    irradiance_so_far = 0
+    for i in range(91):
+        irradiance_so_far += average_yearly_irradiance(i, 23.45)
+        cumulative_irradiance = str(round(100 * irradiance_so_far / all_total_irradiance, 2))
+        print("At " + str(i) + "°, cumulative irradiance is " + cumulative_irradiance + "%")
+
+seeIrradianceByLatitude = False
+if seeIrradianceByLatitude == True:
+    equator_irradiance = average_yearly_irradiance(0, 23.45)
+    for i in range(91):    
+        percent_of_yearly_irradiance = str(round(average_yearly_irradiance(i, 23.45) * 100 / equator_irradiance, 2))
+        print("At " + str(i) + "°, irradiance is " + percent_of_yearly_irradiance + "% of that at the equator.")
