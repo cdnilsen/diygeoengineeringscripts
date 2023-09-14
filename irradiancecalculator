@@ -1,5 +1,13 @@
 import math
 
+# Normalizes the Earth's diameter to 1; really just finds the total length of the line of latitude
+def surface_at_latitude(latitude):
+    if latitude == 90:
+        return 0 # hack to prevent dividing by zero
+    chord_angle = math.radians(180 - (2 * latitude))
+
+    return math.sin(chord_angle/2)
+
 def get_irradiance(latitude, declination, hour):
     latRad = math.radians(latitude)
     declRad = math.radians(declination)
@@ -7,7 +15,7 @@ def get_irradiance(latitude, declination, hour):
 
     elevation = math.sin(latRad)*math.sin(declRad) + math.cos(latRad)*math.cos(declRad)*math.cos(hourAngle)
     
-    # The sine of the elevation angle of the sun is the same as the cosine of the angle between the elevation and vertical.
+    # The sine of the elevation angle is the same as the cosine of the angle between the elevation and vertical.
     if elevation <= 0:
         return 0
     else:
@@ -30,7 +38,7 @@ def average_yearly_irradiance(latitude, axis_tilt):
         all_irradiance += average_daily_irradiance(latitude, starting_declination)
         starting_declination += daily_change
 
-    return (all_irradiance / 365)
+    return (all_irradiance * surface_at_latitude(latitude) / 365) 
 
 seeCumulativeIrradiance = True
 if seeCumulativeIrradiance == True:
